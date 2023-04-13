@@ -5,7 +5,7 @@ on:
     branches: [ "main" ]
 
 env:
-  #REGISTRY: ${{ vars.REGISTRY }}
+  REGISTRY: ${{ vars.REGISTRY }}
   IMAGE_NAME: ${{ github.repository }}
 
 permissions:
