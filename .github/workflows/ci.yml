@@ -98,6 +98,8 @@ jobs:
         cd ${{ env.CD_REPO_PATH }}
         git config user.name 'github-actions[bot]'
         git config user.email 'github-actions[bot]@users.noreply.github.com'
+        NOW="$(date +"%Y%m%d%H%M")"
+        git checkout -b pr-$NOW
         git add .
         git commit -m "update image tag to ${{ github.ref_name }}"
-        git push       
+        git push --set-upstream origin pr-$NOW     
