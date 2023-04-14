@@ -7,6 +7,9 @@ on:
 env:
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
+  CD_REPO: leandrosouzabc/app-deployments-ops
+  CD_REPO_PATH: app-deployments-ops
+  CD_FILE_TO_CHANGE_TAG: demo-spring-boot-gradle/overlays/dev/kustomization.yaml
 
 permissions:
   contents: read
@@ -73,3 +76,20 @@ jobs:
         push: true
         tags: ${{ steps.meta.outputs.tags }}
         labels: ${{ steps.meta.outputs.labels }}
+
+  update-cd-repo:
+
+    runs-on: ubuntu-latest
+
+    steps:
+    - uses: actions/checkout@v3
+      with:
+        repository: ${{ env.CD_REPO }}
+        path: ${{ env.CD_REPO_PATH }}
+    - run: |
+        sed -i 's/v.*.*.*/${{ github.ref_name }}/g' ${{ env.CD_FILE_TO_CHANGE_TAG }}
+        git config user.name ${{ secrets.BOT_USER_NAME }}
+        git config user.email ${{ secrets.BOT_USER_EMAIL }}
+        git add .
+        git commit -m "generated"
+        git push       
