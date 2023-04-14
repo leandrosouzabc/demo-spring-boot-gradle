@@ -87,12 +87,11 @@ jobs:
       with:
         repository: ${{ env.CD_REPO }}
         path: ${{ env.CD_REPO_PATH }}
-        
+
     - run: |
         sed -i "s/v.*.*.*/${{ github.ref_name }}/g" ./${{ env.CD_REPO_PATH }}/${{ env.CD_FILE_TO_CHANGE_TAG }}
         cat ./${{ env.CD_REPO_PATH }}/${{ env.CD_FILE_TO_CHANGE_TAG }}
-        ls
-    - run: |
+        cd ${{ env.CD_REPO_PATH }}
         git add .
-        git commit -m "generated"
+        git commit -m "update image tag to ${{ github.ref_name }}"
         git push       
