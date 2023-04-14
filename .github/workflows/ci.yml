@@ -87,10 +87,11 @@ jobs:
       with:
         repository: ${{ env.CD_REPO }}
         path: ${{ env.CD_REPO_PATH }}
+    - name: Configure git to trust the workspace despite the different owner
+      run:
+        git config --global --add safe.directory "$GITHUB_WORKSPACE"
     - run: |
         sed -i "s/v.*.*.*/${{ github.ref_name }}/g" ./${{ env.CD_REPO_PATH }}/${{ env.CD_FILE_TO_CHANGE_TAG }}
-        git config user.name ${{ secrets.BOT_USER_NAME }}
-        git config user.email ${{ secrets.BOT_USER_EMAIL }}
         git add .
         git commit -m "generated"
         git push       
