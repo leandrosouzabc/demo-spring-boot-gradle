@@ -10,6 +10,7 @@ env:
   CD_REPO: leandrosouzabc/app-deployments-ops
   CD_REPO_PATH: app-deployments-ops
   CD_FILE_TO_CHANGE_TAG: demo-spring-boot-gradle/overlays/dev/kustomization.yaml
+  GH_TOKEN: ${{ github.token }}
 
 permissions:
   contents: read
