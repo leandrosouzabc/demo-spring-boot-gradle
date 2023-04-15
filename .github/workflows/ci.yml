@@ -102,4 +102,5 @@ jobs:
         git checkout -b pr-$NOW
         git add .
         git commit -m "update image tag to ${{ github.ref_name }}"
-        git push --set-upstream origin pr-$NOW     
+        git push --set-upstream origin pr-$NOW
+        gh pr create --title "Pull request for CD update" --body "Please verify!"     
