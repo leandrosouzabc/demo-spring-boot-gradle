@@ -12,7 +12,7 @@ env:
   REGISTRY: us-west1-docker.pkg.dev
   IMAGE_NAME: ${{ github.repository }}
   PROJECT_ID: opt-74-backcountry-gcp-mig
-  DOCKER_FILE: ./Dockerfile
+  GAR_USERNAME: docker-pusher@opt-74-backcountry-gcp-mig.iam.gserviceaccount.com
   GAR_REPOSITORY: us-west1-docker.pkg.dev/opt-74-backcountry-gcp-mig/fulfillment
   
 permissions:
@@ -68,7 +68,10 @@ jobs:
         name: 'Authenticate to Google Cloud'
         uses: 'google-github-actions/auth@v1'
         with:
-          credentials_json: '${{ secrets.JSON_GCLOUD_SERVICE_ACCOUNT_JSON }}'
+          token_format: access_token
+          workload_identity_provider: ${{ secrets.GAR_WIP }}
+          service_account: ${{ secrets.SA }}
+          access_token_lifetime: 300s
 
       - name: Log in to the Container registry
         uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
