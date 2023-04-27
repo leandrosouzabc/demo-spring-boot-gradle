@@ -1,0 +1,76 @@
+name: CI - Push Artifact Registry
+
+on: 
+  push:
+    branches:
+    - devops-migration
+  pull_request:
+    branches:
+    - devops-migration
+
+env:
+  REGISTRY: gcr.io
+  IMAGE_NAME: ${{ github.repository }}
+  PROJECT_ID: opt-74-backcountry-gcp-mig
+  DOCKER_FILE: ./Dockerfile 
+  
+permissions:
+  contents: read
+  pull-requests: write
+  issues: write
+  repository-projects: write
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+
+    - name: Test with Gradle
+      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+      with:
+        arguments: test
+
+  build-and-push-to-gcr:
+    name: Build & push
+    needs: test
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v3
+
+      - name: Set up JDK 17
+        uses: actions/setup-java@v3
+        with:
+          java-version: '17'
+          distribution: 'temurin'
+
+      - name: Validate Gradle wrapper
+        uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+
+      - name: Build with Gradle
+        uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+        with:
+          arguments: build
+
+      - name: Building and pushing the image
+        uses: ./
+        with:
+          gcloud_service_key: "${{ secrets.JSON_GCLOUD_SERVICE_ACCOUNT_JSON }}"
+          registry: ${{ env.REGISTRY }}
+          project_id: ${{ env.PROJECT_ID }}
+          image_name: ${{ env.IMAGE_NAME }}
+          image_tag: test-${{ github.sha }}, ${{ github.sha }}
+          dockerfile: ${{ env.DOCKER_FILE }}
+          context: .
+          target: build
