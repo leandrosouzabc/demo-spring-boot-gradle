@@ -9,10 +9,11 @@ on:
     - devops-migration
 
 env:
-  REGISTRY: gcr.io
+  REGISTRY: us-west1-docker.pkg.dev
   IMAGE_NAME: ${{ github.repository }}
   PROJECT_ID: opt-74-backcountry-gcp-mig
-  DOCKER_FILE: ./Dockerfile 
+  DOCKER_FILE: ./Dockerfile
+  GAR_REPOSITORY: us-west1-docker.pkg.dev/opt-74-backcountry-gcp-mig/fulfillment
   
 permissions:
   contents: read
@@ -63,14 +64,28 @@ jobs:
         with:
           arguments: build
 
-      - name: Building and pushing the image
-        uses: ./
+      - id: 'auth'
+        name: 'Authenticate to Google Cloud'
+        uses: 'google-github-actions/auth@v1'
         with:
-          gcloud_service_key: "${{ secrets.JSON_GCLOUD_SERVICE_ACCOUNT_JSON }}"
+          credentials_json: '${{ secrets.JSON_GCLOUD_SERVICE_ACCOUNT_JSON }}'
+
+      - name: Log in to the Container registry
+        uses: docker/login-action@f054a8b539a109f9f41c372932f1ae047eff08c9
+        with:
           registry: ${{ env.REGISTRY }}
-          project_id: ${{ env.PROJECT_ID }}
-          image_name: ${{ env.IMAGE_NAME }}
-          image_tag: test-${{ github.sha }}, ${{ github.sha }}
-          dockerfile: ${{ env.DOCKER_FILE }}
+          username: 'oauth2accesstoken'
+          password: '${{ steps.auth.outputs.access_token }}'
+
+      - name: Get tag
+        id: get-tag
+        run: echo ::set-output name=short_ref::${GITHUB_REF#refs/*/}
+    
+      - name: Build and push Docker image
+        uses: docker/build-push-action@ad44023a93711e3deb337508980b4b5e9bcdc5dc
+        with:
           context: .
-          target: build
+          push: true
+          tags: |
+             ${{ env.GAR_REPOSITORY }}/${{env.IMAGE_NAME}}:${{ steps.get-tag.outputs.short_ref }}
+             ${{ env.GAR_REPOSITORY }}/${{env.IMAGE_NAME}}:latest
