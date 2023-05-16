@@ -20,7 +20,7 @@ permissions:
 jobs:
   test:
     name: Test
-    runs-on: ful-cicd-nonprod
+    runs-on: ubuntu-latest
     steps:
     - uses: actions/checkout@v3
     - name: Set up JDK 17
@@ -40,7 +40,7 @@ jobs:
   build-and-push-to-gcr:
     name: Build & push
     needs: test
-    runs-on: ful-cicd-nonprod
+    runs-on: ubuntu-latest
     permissions:
       contents: read
       id-token: 'write'
