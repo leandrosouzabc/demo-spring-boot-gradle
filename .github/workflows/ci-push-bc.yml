@@ -1,0 +1,48 @@
+name: test-build
+
+on:
+  push:
+    branches: [ devops-migration-lsdkjf ]
+
+env:
+  APP: demo-spring-boot-gradle
+  PROJECT_ID: bcg-prj-sha-ss-tools-gl-01
+  AR_REPOSITORY: fulfillment-docker
+  
+permissions:
+  contents: read
+
+jobs:
+  test:
+    name: Test
+    runs-on: ful-cicd-nonprod
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up JDK 17
+      uses: actions/setup-java@v3
+      with:
+        java-version: '17'
+        distribution: 'temurin'
+
+    - name: Validate Gradle wrapper
+      uses: gradle/wrapper-validation-action@e6e38bacfdf1a337459f332974bb2327a31aaf4b
+
+    - name: Test with Gradle
+      uses: gradle/gradle-build-action@67421db6bd0bf253fb4bd25b31ebb98943c375e1
+      with:
+        arguments: test
+
+  build-and-push-to-gcr:
+    name: Build and push the image
+    runs-on: ful-cicd-nonprod
+    needs: test
+    steps:
+      - name: Run docker action
+        uses: Backcountry/sha-docker-action@v1.0.2
+        with:
+          project_id: ${{ env.PROJECT_ID }}
+          artifact_repo: ${{ env.AR_REPOSITORY }}
+          app_name: ${{ env.APP }}
+          scan_image: false
+          print_scan_results: false
+          push_image: true
